@@ -1,3 +1,5 @@
+require 'byebug'
+
 class Route
   attr_reader :pattern, :http_method, :controller_class, :action_name
 
@@ -16,15 +18,16 @@ class Route
   # use pattern to pull out route params (save for later?)
   # instantiate controller and call controller action
   def run(req, res)
-    p @pattern
-    params = {}
-    pattern = @pattern.match("/statuses/1")
-    pattern.names.each do |name|
-      params[name] = pattern[name]
+    regex = Regexp.new(@pattern)
+    match_data = regex.match(req.path)
+    route_params = {}
+    if match_data
+      match_data.names.each do |name|
+        route_params[name] = match_data[name]
+      end
     end
-    p params
-    controller = self.controller_class.new(req, res, params)
-    controller.invoke_action(self.action_name)
+    controller = self.controller_class.new(req, res, route_params)
+    controller.invoke_action(action_name.to_s)
   end
 end
 

@@ -25,7 +25,7 @@ class ControllerBase
     raise "error" if already_built_response?
     res.status = 302
     res.header['Location'] = url
-    @session.store_session(@res)
+    session.store_session(@res)
     @already_built_response = true
   end
 
@@ -36,7 +36,7 @@ class ControllerBase
     raise "error" if already_built_response?
     @res.body = [content]
     @res['Content-Type'] = content_type
-    @session.store_session(@res)
+    session.store_session(@res)
     @already_built_response = true
   end
 
@@ -56,14 +56,8 @@ class ControllerBase
 
   # use this with the router to call action_name (:index, :show, :create...)
   def invoke_action(name)
-    render(name.to_s)
-    # router = Router.new
-    # # template = router.send(name)
-    # pattern = name.pattern
-    # http_method = name.http_method
-    # controller_class = name.controller_class
-    # action_name = name.action_name
-    # template = router.send(http_method, pattern, controller_class, action_name)
-    # p template
+    self.send(name)
+    # render(name.to_s)
+
   end
 end
