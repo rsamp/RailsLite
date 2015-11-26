@@ -4,10 +4,8 @@ class Route
   attr_reader :pattern, :http_method, :controller_class, :action_name
 
   def initialize(pattern, http_method, controller_class, action_name)
-    @pattern = pattern
-    @http_method = http_method
-    @controller_class = controller_class
-    @action_name = action_name
+    @pattern, @http_method, @controller_class, @action_name =
+        pattern, http_method, controller_class, action_name
   end
 
   # checks if pattern matches path and method matches request method
@@ -19,7 +17,7 @@ class Route
   # instantiate controller and call controller action
   def run(req, res)
     regex = Regexp.new(@pattern)
-    match_data = regex.match(req.path)
+    match_data = regex.match(req.path) # "/statuses/1"
     route_params = {}
     if match_data
       match_data.names.each do |name|
@@ -27,7 +25,7 @@ class Route
       end
     end
     controller = self.controller_class.new(req, res, route_params)
-    controller.invoke_action(action_name.to_s)
+    controller.invoke_action(action_name)
   end
 end
 
@@ -59,17 +57,11 @@ class Router
 
   # should return the route that matches this request
   def match(req)
-    @routes.each do |route|
-      return route if route.matches?(req)
-    end
-    nil
+    @routes.find { |route| route.matches?(req) }
   end
 
   # either throw 404 or call run on a matched route
   def run(req, res)
-    @routes.each do |route|
-      route.run(req, res) if route.matches?(req)
-    end
-    res.status = 404
+    match(req) ? match(req).run(req, res) : res.status = 404
   end
 end

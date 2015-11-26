@@ -9,9 +9,7 @@ class ControllerBase
 
   # Setup the controller
   def initialize(req, res, route_params = {})
-    @req = req
-    @res = res
-    @params = route_params
+    @req, @res, @params = req, res, route_params
     @already_built_response = false
   end
 
@@ -25,7 +23,7 @@ class ControllerBase
     raise "error" if already_built_response?
     res.status = 302
     res.header['Location'] = url
-    session.store_session(@res)
+    session.store_session(res)
     @already_built_response = true
   end
 
@@ -34,9 +32,9 @@ class ControllerBase
   # Raise an error if the developer tries to double render.
   def render_content(content, content_type)
     raise "error" if already_built_response?
-    @res.body = [content]
-    @res['Content-Type'] = content_type
-    session.store_session(@res)
+    res.body = [content]
+    res['Content-Type'] = content_type
+    session.store_session(res)
     @already_built_response = true
   end
 
@@ -51,13 +49,12 @@ class ControllerBase
 
   # method exposing a `Session` object
   def session
-    @session ||= Session.new(@req)
+    @session ||= Session.new(req)
   end
 
   # use this with the router to call action_name (:index, :show, :create...)
   def invoke_action(name)
     self.send(name)
-    # render(name.to_s)
-
+    render(name) unless already_built_response?
   end
 end
